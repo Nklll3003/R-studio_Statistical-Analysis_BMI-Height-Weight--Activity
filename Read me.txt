@@ -1,0 +1,45 @@
+# MyRPackage
+
+This R package was developed for **Project 2025** (Part II: Programming) in the Master of Data Science program.  
+It provides wrapper functions to analyse the relationship between height, weight, gender, and physical activity  
+for a dataset of 1,000 individuals aged 26–45.
+
+---
+
+## 📦 Installation
+
+To install this package from your local folder:
+
+```r
+library(devtools)
+install("E:/MyRPackage")
+library(MyRPackage)
+
+
+library(MyRPackage)
+
+# Load dataset
+df <- read.csv("E:/StatGit/project2025.csv")
+
+📘 Functions Overview
+Function	Purpose
+hw_lm_analysis(df, plot = TRUE)	Tests for a linear relationship between height and weight using linear regression.
+height_ttest(df)	Performs an independent samples t-test to compare male and female heights.
+gender_activity_chisq(df, plot = TRUE)	Performs a chi-square test to examine association between gender and physical activity.
+
+
+Example Usage
+
+# 1️⃣ Linear regression
+res1 <- hw_lm_analysis(df, plot = TRUE)
+cat("Conclusion:", res1$conclusion, "\n")
+
+# 2️⃣ T-test
+res2 <- height_ttest(df)
+cat("Conclusion:", res2$conclusion, "\n")
+
+# 3️⃣ Chi-square
+res3 <- gender_activity_chisq(df, plot = TRUE)
+cat("Conclusion:", res3$conclusion, "\n")
+
+

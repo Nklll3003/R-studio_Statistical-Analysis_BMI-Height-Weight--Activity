@@ -1,0 +1,429 @@
+---
+title: "Project Part I: Statistical Report"
+author: "Nattapon pronsukwitoon 48995940"
+format: 
+  html: default
+  pdf: default
+params:
+  datafile: "E:/StatGit/project2025.csv"
+execute: 
+  echo: false   # hides the R code in the final report but still runs the code in the background.)
+  bibliography: references.bib
+---
+
+# Abstract
+
+This report investigates three research questions regarding the relationship between height, weight, gender, and physical activity in a dataset of 1,000 individuals aged 26–45. A linear regression model revealed a strong positive linear relationship between height and weight (p \< 0.001). An independent-samples t-test indicated a significant difference in average height between males and females (p \< 0.001). However, a chi-square test of independence showed no significant association between gender and physical activity (p \> 0.05). These findings provide statistical evidence about anthropometric differences across gender and highlight that physical activity levels may not vary significantly by gender in this sample.
+
+# Introduction
+
+This study uses data from 1,000 individuals aged 26–45, including height, weight, gender, and physical activity. To ensure reproducibility and test parameterisation, both the real dataset and a mock dataset with the same structure were used. We address three questions: whether height and weight are linearly related, whether males and females differ in average height, and whether gender is associated with physical activity. Linear regression, a t-test, and a chi-square test were applied.
+
+# Methodology
+
+We applied:
+
+**Linear regression** for height–weight relationship.
+$$
+Model: Weight = β0 + β1Height+ϵi
+$$
+
+Linear regression analysis is a fundamental statistical method [@montgomery2021introduction].
+
+Model: Weight = β0 + β1Height+ϵi
+
+Test statistic: t = β1/SE(B1), following a t- distribution.
+
+Assumptions: linearity, independence, homoscedasticity, normally distributed residuals.
+
+**Independent samples t-test** for comparing male and female heights.The t-test and Chi-
+
+The t-test are based on classical statistical principles developed by Fisher [@fisher1925statistical].
+$$
+t = \frac{\bar{X_1} - \bar{X_2}}{S_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}
+$$
+
+H0: μMale = μFemale
+
+H1:μMale umequal μFemale​
+
+Test statistic: pooled-variance t-test.
+
+Assumptions: normality in each group, equal variances, independence.
+
+**Chi-square test of independence** for gender vs physical activity ndefined.
+
+Chi-square test are based on classical statistical principles developed by Fisher [@fisher1925statistical].
+$$
+\chi^2 = \sum \frac{(O - E)^2}{E}
+$$  
+
+H0​: Gender and physical activity are independent.
+
+H1: Gender and physical activity are associated.
+
+Assumptions: expected cell counts ≥ 5.
+
+Moreover, The analysis and data wrangling were performed in R [@R-base] using the dplyr [@R-dplyr] and ggplot2 [@R-ggplot2] packages.
+
+Question 1 : Is there a linear relationship between height and weight?
+
+H0 : There is no linear relationship between height and weight.
+
+H1 : There is a linear relationship between height and weight.
+
+```{r}
+library(dplyr)
+# Load dataset
+df <- read.csv(params$datafile)
+
+# 1) Linear regression: Height → Weight
+
+# Build a regression model, coefficients table
+
+#use lm() to build linear model
+#dependent variable = weight
+#independent variable = heigh
+model <- lm(weight ~ height, data=df)
+
+# Extract p-value for height
+#The object model now contains the regression equation that predicts weight from height
+#summary(model):This produces a detailed summary of the regression model, including a coefficients table
+#$coefficients:This extracts the coefficients table from the summary output.
+#[2,4]:Row 2 is corresponds to height, Column 4 is corresponds to Pr(>|t|) (the p-value)
+sum_wh <- summary(model)$coefficients[2,4]
+
+
+#plot() → draws a scatter plot of height (x-axis) vs. weight (y-axis).
+#xlab, ylab, main → set the labels for the axes and the title of the graph.
+#xlab, ylab, main → set the labels for the axes and the title of the graph.
+#abline(model, col="red", lwd=2) → adds the regression line from the model (red color, line width = 2) onto the graph.
+plot(df$height, df$weight,
+     xlab="Height (cm)", ylab="Weight (kg)",
+     main="Height vs Weight with Regression Line")
+abline(model, col="red", lwd=2)
+
+
+# Decision + Conclusion
+if(sum_wh < 0.05){
+  sum_wh_conclusion <- "There is a statistically significant positive linear relationship between height and weight."
+} else {
+  sum_wh_conclusion <- "There is no significant linear relationship between height and weight."
+}
+
+print(sum_wh_conclusion)
+
+```
+
+Interpretation
+
+There is a statistically significant positive linear relationship between height and weight.lts
+
+Result for question 1: Height–Weight
+
+sum_wh = 7.57e-52 (same value, since both come from the same model)
+
+sum_wh_conclusion = "There is a statistically significant positive linear relationship between height and weight."
+
+p-value = 7.57e-52 :This value is extremely small (much less than 0.05).
+
+Therefore:
+
+Reject H₀ (null hypothesis).
+
+Conclusion: Height and weight have a statistically significant positive linear relationship.
+
+Question 2 : Is the average height the same for males and females? (You can assume equal variances between male and female heights.)
+
+H₀ (null hypothesis): The average height of males and females is the same.
+
+H₁ (alternative hypothesis): The average height of males and females is different.
+
+```{r}
+library(dplyr)
+
+# ----------------------------------------------------------
+# Load dataset (parameterised)
+# ----------------------------------------------------------
+df <- read.csv(params$datafile)
+
+# ----------------------------------------------------------
+# 1️ Run the independent-samples t-test (equal variances)
+# ----------------------------------------------------------
+t_result <- t.test(height ~ gender, data = df, var.equal = TRUE)
+
+# Extract key values
+t_p       <- t_result$p.value
+t_value   <- t_result$statistic
+df_value  <- t_result$parameter
+
+# ----------------------------------------------------------
+# 2️  Compute descriptive statistics by gender
+# ----------------------------------------------------------
+stats <- df %>%
+  group_by(gender) %>%
+  summarise(
+    mean_height = mean(height, na.rm = TRUE),
+    sd_height   = sd(height,  na.rm = TRUE),
+    n           = n(),
+    .groups     = "drop"
+  )
+
+male_mean   <- stats %>% filter(gender == "Male")   %>% pull(mean_height)
+male_sd     <- stats %>% filter(gender == "Male")   %>% pull(sd_height)
+female_mean <- stats %>% filter(gender == "Female") %>% pull(mean_height)
+female_sd   <- stats %>% filter(gender == "Female") %>% pull(sd_height)
+
+# ----------------------------------------------------------
+# 3️ Generate automatic conclusion
+# ----------------------------------------------------------
+if (t_p < 0.05) {
+  t_conclusion <- paste0(
+    "Males (M = ", round(male_mean, 1),
+    ", SD = ", round(male_sd, 1),
+    ") were significantly taller than females (M = ",
+    round(female_mean, 1),
+    ", SD = ", round(female_sd, 1),
+    "), t(", round(df_value, 0), ") = ", round(t_value, 2),
+    ", p < 0.05."
+  )
+  decision <- "Reject H₀."
+} else {
+  t_conclusion <- paste0(
+    "There was no significant difference in mean height between males and females, ",
+    "t(", round(df_value, 0), ") = ", round(t_value, 2),
+    ", p = ", signif(t_p, 3), "."
+  )
+  decision <- "Fail to reject H₀."
+}
+
+# ----------------------------------------------------------
+# 4️  Display everything neatly using cat()
+# ----------------------------------------------------------
+cat("------------------------------------------------------------\n")
+cat("Independent-Samples t-Test: Male vs Female Heights\n")
+cat("------------------------------------------------------------\n\n")
+
+cat("Hypotheses:\n")
+cat("  H₀: μ(Male) = μ(Female)\n")
+cat("  H₁: μ(Male) ≠ μ(Female)\n\n")
+
+cat("Descriptive Statistics:\n")
+cat("  • Male   → Mean =", round(male_mean, 1),
+    "SD =", round(male_sd, 1), "\n")
+cat("  • Female → Mean =", round(female_mean, 1),
+    "SD =", round(female_sd, 1), "\n\n")
+
+cat("Test Results:\n")
+cat("  • t(", round(df_value, 0), ") =", round(t_value, 2), "\n")
+cat("  • p-value =", signif(t_p, 3), "\n\n")
+
+cat("Decision (α = 0.05): ", decision, "\n\n")
+cat("Conclusion:\n ", t_conclusion, "\n")
+cat("------------------------------------------------------------\n")
+
+```
+
+Results for question 2: Height by Gender
+
+Male height: M = 178, SD = 4
+
+Female height: M = 168, SD = 4
+
+Test statistic: t(998) = -40.64
+
+p-value = 7.98 × 10⁻²¹⁴ (≈ 0, much smaller than 0.05)
+
+Therefore:\
+
+Reject H₀ (null hypothesis).
+
+Conclusion
+
+There is a statistically significant difference in average height between males and females. On average, males (M = 178, SD = 4) were significantly taller than females (M = 168, SD = 4). This finding supports the biological expectation that men tend to be taller than women, and the evidence is very strong given the large sample size (N = 1000) and extremely small p-value.
+
+Question 3 : Is there any association between gender and the amount of physical activity?
+
+H0: There is no association between gender and physical activity.
+
+H1: There is an association between gender and physical activity.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# Load dataset
+df <- read.csv(params$datafile)
+
+# Contingency table
+tbl <- table(df$gender, df$phys)
+
+# Chi-square test
+chi <- chisq.test(tbl)
+
+# Extract values
+chi_p <- chi$p.value
+chi_value <- chi$statistic
+chi_df <- chi$parameter
+
+# Bar plot (grouped by gender and activity level)
+ggplot(df, aes(x = gender, fill = phys)) +
+  geom_bar(position = "dodge") +
+  labs(
+    title = "Gender vs Physical Activity",
+    x = "Gender",
+    y = "Count",
+    fill = "Physical Activity Level"
+  ) +
+  theme_minimal(base_size = 14)
+
+# Auto conclusion
+if(chi_p < 0.05){
+  chi_conclusion <- paste0(
+    "There is a significant association between gender and physical activity, ",
+    "χ²(", chi_df, ") = ", round(chi_value,2),
+    ", p = ", signif(chi_p,3), "."
+  )
+} else {
+  chi_conclusion <- paste0(
+    "There is no significant association between gender and physical activity, ",
+    "χ²(", chi_df, ") = ", round(chi_value,2),
+    ", p = ", signif(chi_p,3), "."
+  )
+}
+
+# Show contingency table and conclusion
+tbl
+chi_conclusion
+```
+
+Results
+
+Contingency table (counts):
+
+Female: Intense = 120, Moderate = 279, None = 128
+
+Male: Intense = 127, Moderate = 236, None = 110
+
+χ²(2) = 2.37
+
+p-value = 0.306 (greater than 0.05)
+
+Interpretation
+
+Although there are slight differences in raw counts (e.g., a slightly higher proportion of females reporting moderate activity), the chi-square test indicates that these differences are not statistically significant. The observed distribution of physical activity across genders could have occurred by chance.
+
+Therefore:
+
+Fail to reject H₀.
+
+Conclusion:
+
+There is no significant association between gender and the amount of physical activity, χ²(2) = 2.37, p = 0.306 (\> 0.05). In this sample of 1,000 individuals, males and females showed similar patterns of physical activity levels, with slightly more females reporting moderate activity, but the difference was not statistically meaningful.
+
+# Conclusion
+
+Height–Weight Relationship
+
+A significant positive linear relationship was found between height and weight (p = 7.57 × 10⁻⁵²), indicating that taller individuals tend to weigh more.
+
+Average Height by Gender
+
+Males (M = 178, SD = 4) were significantly taller than females (M = 168, SD = 4), t(998) = -40.64, p ≈ 0 (7.98 × 10⁻²¹⁴), showing a clear gender difference in height.
+
+Gender and Physical Activity
+
+The chi-square test showed no significant association between gender and physical activity, χ²(2) = 2.37, p = 0.306 (\> 0.05). Activity patterns were similar between males and females.
+
+# Mock Data (for testing parameterisation)
+
+The dataset has the same columns as file "project2025" (
+
+ID, gender, height, weight, phys)
+
+This guarantees your Quarto report can run without changes.
+
+You can switch the parameter in YAML between real and mock data:
+
+real data
+
+params: datafile: "project2025.csv"
+
+mock data
+
+params: datafile: "mock_project2025.csv"
+
+```{r}
+# Set random seed for reproducibility (same results every run)
+set.seed(123)
+
+# Define sample size
+n <- 1000  
+
+# Generate mock dataset with the same structure as the real one
+mock_data <- data.frame(
+  ID = 1:n,
+  gender = sample(c("Male", "Female"), n, replace = TRUE),         # gender gender
+  height = round(rnorm(n, mean = 172, sd = 8)),                    # height  Normal(172, 8)
+  weight = round(rnorm(n, mean = 70, sd = 12)),                    # weight  Normal(70, 12)
+  phys   = sample(c("None", "Moderate", "Intense"), n, replace = TRUE,
+                  prob = c(0.3, 0.5, 0.2))                         # phys
+)
+
+# Create a file path that works across Windows/Mac/Linux (Downloads folder)
+file_path <- file.path("C:/Users/nonps/Downloads", "mock_project2025.csv")
+write.csv(mock_data, file_path, row.names = FALSE)
+cat("Mock data saved:", file_path, "\n")
+
+
+
+```
+
+Step 1: Generate the Mock Data by run code above and it will create "mock_project2025.csv"
+
+Step 2: Switch to Mock Data in YAML
+
+the YAML header was updated to use the mock dataset by changing params:
+  datafile: "E:/StatGit/project2025.csv" to mock_project2025.csv.
+
+```{r}
+#install.packages("magick")
+library(magick)
+img <- image_read("E:/COMP6179-Statistic Tech/Nattapon_Pronsukwitoon_48995940/Nattapon_Pronsukwitoon_48995940/Part_1/vignettes/articles/images/Mock_data.jpg")
+plot(img)
+
+```
+
+
+Step 3: : Re-render the Report
+
+Knit/Render your quarto file again then The whole report will now run on the mock dataset. All tests (linear regression, t-test, chi-square) will still run, but the numbers will come from the fake data.
+
+Step 4: Verify Parameterisation
+
+If your report works with both project2025.csv (real) and mock_project2025.csv (fake). This proves that the code is parameterised correctly.\
+\
+these pic below is result after use mock data.
+
+result of mock data for question 1
+
+```{r}
+library(magick)
+img <- image_read("E:/COMP6179-Statistic Tech/Nattapon_Pronsukwitoon_48995940/Nattapon_Pronsukwitoon_48995940/Part_1/vignettes/articles/images/Mock_Q1.jpg")
+plot(img)
+```
+result of mock data for question 2
+
+```{r}
+img <- image_read("E:/COMP6179-Statistic Tech/Nattapon_Pronsukwitoon_48995940/Nattapon_Pronsukwitoon_48995940/Part_1/vignettes/articles/images/Mock_Q2.jpg")
+plot(img)
+```
+
+
+result of mock data for question 3
+
+```{r}
+img <- image_read("E:/COMP6179-Statistic Tech/Nattapon_Pronsukwitoon_48995940/Nattapon_Pronsukwitoon_48995940/Part_1/vignettes/articles/images/Mock_Q3.jpg")
+plot(img)
+```
+

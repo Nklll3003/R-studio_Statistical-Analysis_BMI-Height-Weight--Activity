@@ -1,0 +1,340 @@
+---
+title: "Project Part I: Statistical Report"
+author: "Nattapon pronsukwitoon 48995940"
+format: 
+  html: default
+  pdf: default
+params:
+  datafile: "project2025.csv"
+execute: 
+  echo: false   # hides the R code in the final report but still runs the code in the background.)
+---
+
+# Abstract
+
+This report investigates three research questions regarding the relationship between height, weight, gender, and physical activity in a dataset of 1,000 individuals aged 26–45. A linear regression model revealed a strong positive linear relationship between height and weight (p \< 0.001). An independent-samples t-test indicated a significant difference in average height between males and females (p \< 0.001). However, a chi-square test of independence showed no significant association between gender and physical activity (p \> 0.05). These findings provide statistical evidence about anthropometric differences across gender and highlight that physical activity levels may not vary significantly by gender in this sample.
+
+# Introduction
+
+
+Understanding human anthropometric and behavioural patterns is essential in health and social research. This study explores the relationship between height, weight, and gender, and whether gender influences physical activity levels. The dataset includes 1,000 individuals aged 26–45, each with recorded measurements of height, weight, gender, and self-reported physical activity. 
+
+The analysis addresses three research questions:
+
+1. **Is there a linear relationship between height and weight?**  
+2. **Is the average height the same for males and females?**  
+3. **Is there any association between gender and physical activity?**
+
+
+# Methodology
+
+We applied:
+
+**Linear regression** for height–weight relationship.
+$$
+Model: Weight = β0 + β1Height+ϵi
+$$
+Test statistic: t = β1/SE(B1), following a t- distribution.
+
+**Null Hypothesis (H₀):** There is no linear relationship between height and weight (β₁ = 0).  
+- **Alternative Hypothesis (H₁):** There is a linear relationship between height and weight (β₁ ≠ 0).  
+- **Assumptions:** Linearity, homoscedasticity, independence, and normally distributed residuals.  
+- **Test statistic:** \( t = \frac{\hat{\beta_1}}{SE(\hat{\beta_1})} \), following a t-distribution.
+
+Assumptions: linearity, independence, homoscedasticity, normally distributed residuals.
+
+Linear regression analysis is a fundamental statistical method [@montgomery2021introduction].
+
+**Independent samples t-test** for comparing male and female heights.
+
+The t-test are based on classical statistical principles developed by Fisher [@fisher1925statistical].
+
+$$
+t = \frac{\bar{X_1} - \bar{X_2}}{S_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}
+$$
+
+where \( S_p^2 \) is the pooled variance estimate.
+
+
+H0: μMale = μFemale
+
+H1:μMale umequal μFemale​
+
+Test statistic: pooled-variance t-test.
+
+Assumptions: normality in each group, equal variances, independence.
+
+**Chi-square test of independence** for gender vs physical activity.
+
+Chi-square test are based on classical statistical principles developed by Fisher [@fisher1925statistical].
+
+$$
+\chi^2 = \sum \frac{(O - E)^2}{E}
+$$  
+
+H0: Gender and physical activity are independent.
+
+H1: Gender and physical activity are associated.
+
+Assumptions: expected cell counts ≥ 5.
+
+
+#unit tests
+
+```{r}
+library(testthat)
+library(MyRPackage)
+
+test_that("hw_lm_analysis outputs list with correct names", {
+  df <- data.frame(height=c(160,170,180), weight=c(50,70,80))
+  result <- hw_lm_analysis(df, plot=FALSE)
+  expect_true(is.list(result))
+  expect_true("p_value" %in% names(result))
+})
+
+```
+
+# Write Description and name
+
+```{r}
+usethis::use_package("ggplot2")
+usethis::use_package("dplyr")
+usethis::use_pipe()
+
+```
+
+#Document & Install
+
+```{r}
+library(devtools)
+document()    # create man and NAMESPACE
+install()     # install package
+load_all()    # load package to test
+
+
+```
+
+
+```{r}
+library(project)
+```
+
+
+#Question 1 : Is there a linear relationship between height and weight?
+
+H0 : There is no linear relationship between height and weight.
+
+H1 : There is a linear relationship between height and weight.
+
+
+```{r}
+library(project)
+
+df <- read.csv("E:/StatGit/project2025.csv")
+
+# Q1 Linear Regression
+res1 <- hw_lm_analysis(df, plot = TRUE)
+print(res1)
+```
+
+Result for question 1: Height–Weight
+
+sum_wh = 7.57e-52 (same value, since both come from the same model)
+
+sum_wh_conclusion = "There is a statistically significant positive linear relationship between height and weight."
+
+p-value = 7.57e-52 :This value is extremely small (much less than 0.05).
+
+Therefore:
+
+Reject H₀ (null hypothesis).
+
+Conclusion: Height and weight have a statistically significant positive linear relationship.
+
+
+#Question 2 : Is the average height the same for males and females? (You can assume equal variances between male and female heights.)
+
+H₀ (null hypothesis): The average height of males and females is the same.
+
+H₁ (alternative hypothesis): The average height of males and females is different.
+
+
+```{r}
+# Q2 Independent t-test
+res2 <- height_ttest(df)
+print(res2)
+```
+
+#Question 3 : Is there any association between gender and the amount of physical activity?
+
+H0: There is no association between gender and physical activity.
+
+H1: There is an association between gender and physical activity.
+
+```{r}
+# Q3 Chi-square test
+res3 <- gender_activity_chisq(df, plot = TRUE)
+print(res3)
+
+```
+Results
+
+Contingency table (counts):
+
+Female: Intense = 120, Moderate = 279, None = 128
+
+Male: Intense = 127, Moderate = 236, None = 110
+
+χ²(2) = 2.37
+
+p-value = 0.306 (greater than 0.05)
+
+Interpretation
+
+Although there are slight differences in raw counts (e.g., a slightly higher proportion of females reporting moderate activity), the chi-square test indicates that these differences are not statistically significant. The observed distribution of physical activity across genders could have occurred by chance.
+
+Therefore:
+
+Fail to reject H₀.
+Conclusion:
+
+There is no significant association between gender and the amount of physical activity, χ²(2) = 2.37, p = 0.306 (\> 0.05). In this sample of 1,000 individuals, males and females showed similar patterns of physical activity levels, with slightly more females reporting moderate activity, but the difference was not statistically meaningful.
+
+# Conclusion
+
+Height–Weight Relationship
+
+A significant positive linear relationship was found between height and weight (p = 7.57 × 10⁻⁵²), indicating that taller individuals tend to weigh more.
+
+Average Height by Gender
+
+Males (M = 178, SD = 4) were significantly taller than females (M = 168, SD = 4), t(998) = -40.64, p ≈ 0 (7.98 × 10⁻²¹⁴), showing a clear gender difference in height.
+
+Gender and Physical Activity
+
+The chi-square test showed no significant association between gender and physical activity, χ²(2) = 2.37, p = 0.306 (\> 0.05). Activity patterns were similar between males and females.
+
+# Mock Data (for testing parameterisation)
+
+The dataset has the same columns as file "project2025" (
+
+ID, gender, height, weight, phys)
+
+This guarantees your Quarto report can run without changes.
+
+You can switch the parameter in YAML between real and mock data:
+
+real data
+
+params: datafile: "project2025.csv"
+
+mock data
+
+params: datafile: "mock_project2025.csv"
+
+```{r}
+# Set random seed for reproducibility (same results every run)
+set.seed(123)
+n <- 1000
+
+height <- round(rnorm(n, mean = 172, sd = 8))
+weight <- round(-33 + 0.60 * height + rnorm(n, mean = 0, sd = 6))  # depends on height
+
+gender <- sample(c("Male","Female"), n, TRUE)
+phys   <- sample(c("None","Moderate","Intense"), n, TRUE, prob = c(0.3, 0.5, 0.2))
+
+mock_data <- data.frame(
+  ID = 1:n, gender = gender, height = height, weight = weight, phys = phys
+)
+
+file_path <- file.path("C:/Users/nonps/Downloads", "mock_project2025.csv")
+write.csv(mock_data, file_path, row.names = FALSE)
+cat("Mock data saved:", file_path, "\n")
+
+```
+
+Step 1: Generate the Mock Data by run code above and it will create "mock_project2025.csv"
+
+Step 2: Switch to Mock Data in YAML
+
+the YAML header was updated to use the mock dataset by changing params\$datafile from project2025.csv to mock_project2025.csv.
+
+
+Step 3: : Re-render the Report
+
+Knit/Render your quarto file again then The whole report will now run on the mock dataset. All tests (linear regression, t-test, chi-square) will still run, but the numbers will come from the fake data.
+
+Step 4: Verify Parameterisation
+
+If your report works with both project2025.csv (real) and mock_project2025.csv (fake). This proves that the code is parameterised correctly.
+
+# Test data sample with R package
+
+1). Linear regression (Q1) Mock data
+
+```{r}
+
+df <- read.csv("C:/Users/nonps/Downloads/mock_project2025.csv")
+
+Mres1 <- hw_lm_analysis(df, plot = TRUE)
+print(Mres1)
+
+
+```
+
+P-value: 0.0548 
+Conclusion: There is no significant linear relationship between height and weight.
+
+Expected: Because weight was generated dependent on height, we usually get a strong significant result.
+
+But in this run, the random noise (rnorm) caused the p-value to be slightly above 0.05 → borderline not significant.
+
+If you regenerate with a smaller error (sd = 6 → 3), you’ll see a significant positive relationship.
+
+Interpretation: In this mock dataset, the relationship between height and weight is weak because random noise masked the effect.
+
+
+2). Independent t-test (Q2) Mock data
+
+```{r}
+
+df <- read.csv("C:/Users/nonps/Downloads/mock_project2025.csv")
+
+Mres2 <- height_ttest(df)
+print(Mres2)
+```
+P-value: 7.98e-214 
+Conclusion: Males (M = 178, SD = 4) were significantly taller than females (M = 167.8, SD = 4), t(998) = -40.64, p < 0.05. 
+
+Very small p-value → strong evidence against H₀.
+
+Males are on average ~10 cm taller than females.
+
+This matches your data generation since males & females were sampled from the same distribution, but sampling happened to create a clear difference.
+
+Interpretation: In this sample, men are statistically significantly taller than women.
+
+
+3). Chi-square test (Q3) Mock data
+
+```{r}
+df <- read.csv("C:/Users/nonps/Downloads/mock_project2025.csv")
+
+Mres3 <- gender_activity_chisq(df, plot = TRUE)
+
+print(Mres3)
+```
+P-value: 0.306 
+Conclusion: There is no significant association between gender and physical activity, χ²(2) = 2.37, p = 0.306. 
+        
+         Intense Moderate None
+  Female     120      279  127
+  Male       128      236  110
+
+Counts are similar across genders.
+
+p-value > 0.05 → no significant difference.
+
+Meaning: gender doesn’t predict activity levels.
+
+Interpretation: Activity levels appear balanced between males and females.
