@@ -25,18 +25,6 @@ The project is split into two complementary parts:
 | Height: Male vs. Female | Males significantly taller than females (M = 178cm vs. 168cm, p < 0.001) |
 | Gender vs. Physical Activity | No significant association (χ²(2) = 2.37, p = 0.306) |
 
-## 🗂️ Repository Structure
-
-├── MyRPackage/ # Custom R package with analysis functions
-├── images/ # Plots and figures used in reports
-├── 01_statistical_analysis_report.qmd # Part I: statistical report (base R)
-├── 02_rpackage_applied_analysis.qmd # Part II: analysis via MyRPackage + unit tests
-├── myrpackage_vignette.Rmd # Package usage guide / vignette
-├── bmi_height_weight_activity_data.csv # Dataset (1,000 observations)
-├── references.bib # Bibliography for citations
-└── README.md
-
-
 ## 📦 MyRPackage Functions
 
 | Function | Purpose |
